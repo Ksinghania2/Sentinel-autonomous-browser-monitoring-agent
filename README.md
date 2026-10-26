@@ -1,15 +1,13 @@
 # Sentinel: autonomous browser monitoring agent
 
-Type a goal in plain English. A [browser-use](https://github.com/browser-use/browser-use) agent opens a real Chromium window,
-works through the page with a vision-language model, and Sentinel archives a report with screenshots to **AWS S3**
-(returned as a presigned link). Watch every step live in the dashboard.
+Describe a check in plain English. A [browser-use](https://github.com/browser-use/browser-use) agent navigates a real Chromium browser, streams its progress to the dashboard, and archives a report with screenshots to **AWS S3** or local storage.
 
 ## Features
-- **Live run view**: watch each agent step and browser frame stream in.
-- **History**: every run is archived (S3 or local) and listed in the History tab.
-- **Change detection**: each run is compared with the previous run of the same goal. Changed pixels are painted red and the summaries are compared too.
-- **Monitors**: re-run a goal every 5 min to daily, headless. Changes can post to `ALERT_WEBHOOK_URL` (Slack/Discord compatible).
-- **Docker + CI**: `docker build -t sentinel . && docker run -p 8000:8000 --env-file .env sentinel`. GitHub Actions lints on every push and publishes the image to GHCR from `main`.
+- **Live browser session**: follow the current page and agent activity as the check runs.
+- **Run history and reports**: review saved summaries, screenshots, and report links.
+- **Change detection**: compare screenshots and summaries with the previous run of the same goal.
+- **Scheduled monitors**: re-run a goal every 5 minutes, 15 minutes, hourly, or daily. Changes can post to `ALERT_WEBHOOK_URL` (Slack/Discord-compatible).
+- **Container health**: Docker installs Chromium, runs the app as a non-root user, and provides a `/healthz` health check.
 
 ## Run it (VS Code)
 
@@ -24,6 +22,8 @@ uvicorn main:app --reload
 ```
 Open http://localhost:8000.
 
+Run the test suite with `pip install -r requirements-dev.txt` followed by `python -m pytest -q`.
+
 Install Google Chrome or Chromium before starting Sentinel. Browser-use controls the installed browser through Chrome DevTools Protocol; a separate Playwright install is not required. Set `HEADLESS=true` for a machine without a desktop.
 
 Choose one model provider in `.env`:
@@ -33,6 +33,7 @@ Choose one model provider in `.env`:
 - `bedrock`: set `BEDROCK_MODEL`, `AWS_REGION`, and configure AWS credentials with Bedrock model access
 
 Keep `.env` private; it is excluded from Git. The app reports a clear configuration error if the selected provider's required credentials are missing.
+The dashboard checks `/api/status` before enabling runs or scheduled monitors. Add the selected provider's credential to `.env` and restart the app; a configured key is not considered verified until a real run succeeds.
 
 ## AWS setup
 1. Create a private S3 bucket and set `S3_BUCKET` in `.env`.
@@ -43,12 +44,14 @@ No bucket set? Reports are saved to `./reports` and served locally.
 
 ## Run with Docker
 
+Create `.env` from `.env.example` and add a key for the model provider you selected. Then:
+
 ```bash
 docker build -t sentinel .
-docker run --rm -p 8000:8000 --env-file .env sentinel
+docker run --rm --name sentinel -p 8000:8000 --env-file .env -v sentinel-data:/app/data -v sentinel-reports:/app/reports sentinel
 ```
 
-The image installs Chromium and runs it headlessly. Add `-v sentinel-data:/app/data -v sentinel-reports:/app/reports` to retain monitors and local reports between container restarts.
+The image runs Chromium headlessly. The named volumes preserve scheduled monitors and locally stored reports across container restarts. Browse to http://localhost:8000; check container readiness with `docker inspect --format='{{.State.Health.Status}}' sentinel`.
 
 ## Notes
-Local runs use a visible Chrome window by default. Docker sets `HEADLESS=true`; for cloud hosting, run on EC2 or ECS and configure model credentials and persistent storage.
+Local runs use a visible Chrome window by default. Docker sets `HEADLESS=true`. For cloud hosting, configure model credentials and persistent storage. Sentinel can navigate to URLs based on its task instructions; do not expose it publicly without adding appropriate authentication and network-access controls.

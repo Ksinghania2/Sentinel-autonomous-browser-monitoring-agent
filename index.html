@@ -3,172 +3,682 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sentinel · Browser monitoring agent</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#f5f7fa">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231b2b43'/%3E%3Cpath d='M16 5 24 8v6c0 5-3 9-8 12-5-3-8-7-8-12V8l8-3Z' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
+<title>Sentinel — Browser monitoring</title>
 <style>
-:root{--ink:#0c1420;--deep:#101c2c;--panel:#16253a;--line:#243750;--text:#e6edf6;--mute:#8ba0b8;--amber:#ffb454;--teal:#4fd6c0;--red:#ff6b6b}
-*{box-sizing:border-box;margin:0}
-body{background:radial-gradient(1200px 600px at 80% -10%,#1b3350 0,transparent 60%),var(--ink);color:var(--text);font:16px/1.55 "Instrument Sans",system-ui,sans-serif;min-height:100vh}
-h1,h2{font-family:"Bricolage Grotesque",sans-serif;letter-spacing:-.02em}
-main{max-width:1240px;margin:0 auto;padding:40px 24px 80px}
-header{display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap;margin-bottom:28px}
-h1{font-size:clamp(2.2rem,5vw,3.6rem);line-height:1;font-weight:700}
-header p{color:var(--mute);max-width:44ch}
-.goal{display:flex;gap:10px;background:var(--deep);border:1px solid var(--line);border-radius:14px;padding:8px}
-.goal input{flex:1;background:none;border:0;color:var(--text);font:inherit;padding:12px 14px;outline:none;min-width:0}
-button{font:500 1rem "Instrument Sans";border:0;border-radius:10px;padding:0 22px;background:var(--amber);color:#2a1a00;cursor:pointer}
-button:disabled{opacity:.5;cursor:wait}
-:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 28px}
-.chips span{font-size:.88rem;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:4px 12px;cursor:pointer}
-.chips span:hover{color:var(--text);border-color:var(--mute)}
-.grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:20px}
-@media(max-width:900px){.grid{grid-template-columns:1fr}}
-.frame{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--deep);border-bottom:1px solid var(--line)}
-.dots{display:flex;gap:6px}.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}
-.url{flex:1;font-size:.85rem;color:var(--mute);background:var(--ink);border-radius:6px;padding:4px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.view{aspect-ratio:16/10;display:grid;place-items:center;position:relative;color:var(--mute);text-align:center;padding:24px}
-.view img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
-.live .view::after{content:"";position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent);animation:scan 2.4s linear infinite}
-@keyframes scan{from{top:0}to{top:100%}}
-@media(prefers-reduced-motion:reduce){.live .view::after{animation:none}}
-.side{display:flex;flex-direction:column;gap:12px;max-height:560px;overflow:auto;padding-right:4px}
-.step{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:10px;padding:12px 14px;cursor:pointer}
-.step.done{border-left-color:var(--teal)}
-.step b{font-family:"Bricolage Grotesque";font-weight:500}
-.step small{display:block;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.empty{color:var(--mute);border:1px dashed var(--line);border-radius:10px;padding:18px}
-#report{display:none;margin-top:20px;background:var(--panel);border:1px solid var(--teal);border-radius:14px;padding:24px}
-#report h2{margin-bottom:8px}
-#report pre{white-space:pre-wrap;font:inherit;color:var(--text);max-width:80ch;margin-bottom:16px}
-#report a{display:inline-block;background:var(--teal);color:#032a24;text-decoration:none;padding:10px 18px;border-radius:10px;font-weight:500}
-#report.err{border-color:var(--red)}
-
-nav{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--line)}
-nav button{background:none;color:var(--mute);border-radius:0;padding:10px 18px;border-bottom:2px solid transparent}
-nav button[aria-selected=true]{color:var(--text);border-color:var(--amber)}
-[hidden]{display:none!important}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px}
-.card h3{font:500 1.05rem "Bricolage Grotesque"}.card p{color:var(--mute);font-size:.92rem;max-height:4.6em;overflow:hidden}
-.card img{width:100%;border-radius:8px;border:1px solid var(--line)}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.88rem;color:var(--mute)}
-.badge{border-radius:99px;padding:2px 10px;font-size:.82rem;border:1px solid var(--line)}
-.badge.chg{color:var(--amber);border-color:var(--amber)}.badge.ok{color:var(--teal);border-color:var(--teal)}
-.card a,.linkbtn{color:var(--teal);cursor:pointer;background:none;padding:0;text-decoration:underline}
-.mon{display:flex;gap:10px;margin-bottom:20px}.mon input,.mon select{background:var(--deep);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:12px;font:inherit}
-.mon input{flex:1;min-width:0}.mon button{padding:0 20px}
-#rdiff{margin-top:16px;max-width:100%;border-radius:8px;border:1px solid var(--line)}
+:root {
+  color-scheme: light;
+  --ink: #172338;
+  --muted: #68778b;
+  --faint: #8996a8;
+  --line: #dfe5ec;
+  --canvas: #f5f7fa;
+  --surface: #fff;
+  --surface-soft: #f8fafc;
+  --navy: #1b2b43;
+  --teal: #087f73;
+  --teal-soft: #e6f5f2;
+  --amber: #a96411;
+  --amber-soft: #fff5e7;
+  --red: #b93636;
+  --red-soft: #fff0ef;
+  --shadow: 0 14px 40px rgb(26 42 64 / 7%);
+  --shadow-hover: 0 18px 44px rgb(26 42 64 / 11%);
+  --ease-out: cubic-bezier(.2, .75, .25, 1);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+* { box-sizing: border-box; }
+body { min-width: 320px; min-height: 100vh; margin: 0; background: radial-gradient(ellipse at 50% -240px, #e9f3f2 0, transparent 620px), var(--canvas); color: var(--ink); }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: wait; opacity: .62; }
+:focus-visible { outline: 3px solid #36b8a7; outline-offset: 3px; }
+[hidden] { display: none !important; }
+.shell { width: min(1200px, calc(100% - 48px)); margin: 0 auto; }
+.topbar { position: sticky; z-index: 10; top: 0; height: 72px; border-bottom: 1px solid rgb(223 229 236 / 85%); background: rgb(255 255 255 / 82%); backdrop-filter: blur(16px); }
+.topbar-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+.brand { display: inline-flex; align-items: center; gap: 11px; color: var(--ink); text-decoration: none; }
+.brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; color: #fff; background: var(--navy); box-shadow: 0 4px 10px rgb(27 43 67 / 16%); transition: transform .22s var(--ease-out); }
+.brand:hover .brand-mark { transform: rotate(-5deg) scale(1.04); }
+.brand-mark svg { width: 20px; height: 20px; }
+.brand-name { font-size: 1.05rem; font-weight: 750; letter-spacing: -.04em; }
+.topbar-note { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .85rem; }
+.status-dot { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: #c18836; box-shadow: 0 0 0 3px #fcf0d9; transition: background .2s ease, box-shadow .2s ease; }
+.status-dot.ready { background: #35a48e; box-shadow: 0 0 0 3px #e0f2ed; }
+.status-dot.error { background: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+main { padding: 54px 0 80px; animation: page-enter .55s var(--ease-out) both; }
+.hero { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
+.eyebrow { margin: 0 0 9px; color: var(--teal); font-size: .74rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+h1, h2, h3, p { margin-top: 0; }
+h1 { max-width: 700px; margin-bottom: 11px; font-size: clamp(2rem, 5vw, 3.15rem); line-height: 1.08; letter-spacing: -.055em; }
+.hero-copy { max-width: 650px; margin-bottom: 0; color: var(--muted); font-size: 1.02rem; line-height: 1.7; }
+.hero-aside { flex: 0 0 auto; padding: 12px 15px; border: 1px solid var(--line); border-radius: 12px; background: rgb(255 255 255 / 80%); box-shadow: 0 5px 18px rgb(26 42 64 / 3%); color: var(--muted); font-size: .82rem; }
+.hero-aside strong { display: block; margin-bottom: 2px; color: var(--ink); font-size: .9rem; }
+.tabs { display: flex; gap: 4px; margin-bottom: 22px; border-bottom: 1px solid var(--line); }
+.tab { position: relative; padding: 12px 17px; border: 0; background: transparent; color: var(--muted); font-size: .92rem; font-weight: 600; transition: color .18s ease; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); }
+.tab[aria-selected="true"]::after { position: absolute; right: 12px; bottom: -1px; left: 12px; height: 2px; background: var(--teal); animation: tab-enter .2s var(--ease-out) both; content: ""; }
+.panel { min-width: 0; }
+.panel.is-entering { animation: panel-enter .24s var(--ease-out) both; }
+.run-compose { padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); transition: border-color .2s ease, box-shadow .2s ease, transform .2s var(--ease-out); }
+.run-compose:focus-within { border-color: #b7d6d1; box-shadow: 0 16px 42px rgb(26 42 64 / 9%), 0 0 0 3px rgb(8 127 115 / 6%); }
+.setup-notice { display: flex; align-items: start; gap: 12px; padding: 15px 17px; margin: 0 0 18px; border: 1px solid #ecd6ae; border-radius: 12px; background: #fff9ed; color: #72511d; animation: panel-enter .25s var(--ease-out) both; }
+.setup-notice[hidden] { display: none; }
+.setup-icon { display: grid; width: 28px; height: 28px; flex: 0 0 auto; place-items: center; border-radius: 9px; background: #ffedca; color: #8b5a0d; font-weight: 800; }
+.setup-copy { min-width: 0; }
+.setup-copy strong { display: block; margin: 1px 0 3px; color: #5e4218; font-size: .85rem; }
+.setup-copy p { margin: 0; color: #796644; font-size: .8rem; line-height: 1.55; }
+.setup-copy code { padding: 1px 5px; border: 1px solid #f0dfc3; border-radius: 4px; background: #fff; color: #624719; font-size: .76rem; }
+.field-label { display: block; margin-bottom: 9px; font-size: .87rem; font-weight: 700; }
+.goal-row { display: flex; align-items: stretch; gap: 10px; }
+.goal-input, .monitor-input, .interval-select { min-width: 0; border: 1px solid #cfd8e2; border-radius: 10px; background: var(--surface); color: var(--ink); }
+.goal-input { flex: 1; min-height: 50px; padding: 0 15px; transition: border-color .18s ease, box-shadow .18s ease; }
+.goal-input:focus, .monitor-input:focus, .interval-select:focus { border-color: #70aaa1; outline: 0; box-shadow: 0 0 0 3px rgb(8 127 115 / 10%); }
+input::placeholder { color: #8a97a8; }
+.primary { min-height: 48px; padding: 0 19px; border: 0; border-radius: 10px; background: var(--navy); color: #fff; font-size: .91rem; font-weight: 650; box-shadow: 0 3px 8px rgb(27 43 67 / 13%); transition: background .18s ease, transform .18s var(--ease-out), box-shadow .18s ease; }
+.primary:hover:not(:disabled) { transform: translateY(-1px); background: #263b59; }
+.primary:active:not(:disabled) { transform: translateY(0) scale(.985); box-shadow: none; }
+.primary:disabled { box-shadow: none; }
+.primary.is-loading::before { display: inline-block; width: 13px; height: 13px; margin-right: 9px; border: 2px solid rgb(255 255 255 / 38%); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; content: ""; }
+.primary.is-loading svg { display: none; }
+.primary svg { width: 16px; height: 16px; vertical-align: -3px; margin-right: 7px; }
+.helper { margin: 9px 0 0; color: var(--faint); font-size: .8rem; }
+.examples { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 15px 0 26px; }
+.examples-label { margin-right: 2px; color: var(--muted); font-size: .8rem; font-weight: 650; }
+.example { padding: 7px 11px; border: 1px solid var(--line); border-radius: 99px; background: var(--surface); color: #4e5d71; font-size: .78rem; line-height: 1.25; text-align: left; transition: border-color .18s ease, color .18s ease, background .18s ease, transform .18s var(--ease-out); }
+.example:hover { transform: translateY(-1px); border-color: #8bbdb5; background: #f5fbfa; color: var(--teal); }
+.workspace-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, .8fr); gap: 16px; align-items: stretch; }
+.surface-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 4px 14px rgb(26 42 64 / 2%); transition: border-color .2s ease, box-shadow .2s ease; }
+.surface-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; padding: 0 17px; border-bottom: 1px solid var(--line); }
+.surface-heading.section-title { min-height: 0; padding: 0 0 15px; border: 0; }
+.heading-actions { display: flex; align-items: center; gap: 12px; }
+.history-tools { display: grid; grid-template-columns: minmax(0, 1fr) 190px auto; gap: 10px; align-items: center; margin: 0 0 15px; }
+.history-search-wrap { position: relative; min-width: 0; }
+.history-search-wrap svg { position: absolute; top: 50%; left: 12px; width: 15px; height: 15px; color: var(--faint); transform: translateY(-50%); pointer-events: none; }
+.history-search, .history-filter { width: 100%; min-height: 40px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); font-size: .81rem; }
+.history-search { padding: 0 12px 0 36px; }
+.history-filter { padding: 0 30px 0 11px; }
+.history-count { color: var(--muted); font-size: .78rem; text-align: right; white-space: nowrap; }
+.quiet-action { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--muted); font-size: .76rem; font-weight: 600; }
+.quiet-action:hover { border-color: #9bcac2; color: var(--teal); }
+.quiet-action:disabled { cursor: wait; opacity: .6; }
+.quiet-action svg { width: 13px; height: 13px; }
+.surface-heading h2 { margin: 0; font-size: .92rem; letter-spacing: -.015em; }
+.subtle-label { color: var(--faint); font-size: .77rem; }
+.browser-chrome { display: flex; align-items: center; gap: 11px; height: 42px; padding: 0 13px; border-bottom: 1px solid #e8edf2; background: var(--surface-soft); }
+.window-dots { display: flex; gap: 5px; }
+.window-dots i { width: 7px; height: 7px; border-radius: 50%; background: #c6ced8; }
+.address { min-width: 0; overflow: hidden; color: var(--muted); font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
+.browser-view { position: relative; display: grid; min-height: 310px; aspect-ratio: 16 / 9; place-items: center; overflow: hidden; padding: 28px; background: #edf1f5; color: var(--muted); text-align: center; }
+.browser-view img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #e9eef3; }
+.browser-view img.is-entering { animation: image-enter .25s ease both; }
+.placeholder { max-width: 280px; }
+.placeholder-icon { display: grid; width: 43px; height: 43px; place-items: center; margin: 0 auto 13px; border: 1px solid #d8e0e8; border-radius: 13px; background: #fff; color: var(--teal); }
+.placeholder-icon svg { width: 21px; height: 21px; }
+.placeholder strong { display: block; margin-bottom: 5px; color: #35445a; font-size: .88rem; }
+.placeholder span { font-size: .79rem; line-height: 1.5; }
+.live .browser-view::after { position: absolute; z-index: 1; top: 0; right: 0; left: 0; height: 2px; background: var(--teal); box-shadow: 0 0 12px #42c9b7; animation: scan 2.1s linear infinite; content: ""; }
+@keyframes scan { to { transform: translateY(310px); } }
+.step-list { display: flex; max-height: 395px; min-height: 310px; flex-direction: column; gap: 9px; overflow: auto; padding: 13px; }
+.step { display: grid; grid-template-columns: 29px minmax(0, 1fr); gap: 10px; padding: 11px; border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; animation: row-enter .2s var(--ease-out) both; transition: border-color .18s ease, background .18s ease, transform .18s var(--ease-out), box-shadow .18s ease; }
+.step:hover { transform: translateY(-1px); border-color: #9bcac2; box-shadow: 0 5px 14px rgb(26 42 64 / 5%); }
+.step[aria-current="true"] { border-color: #79b4aa; background: #f6fbfa; }
+.step-number { display: grid; width: 27px; height: 27px; place-items: center; border-radius: 8px; background: var(--amber-soft); color: var(--amber); font-size: .74rem; font-weight: 750; }
+.step.done .step-number { background: var(--teal-soft); color: var(--teal); }
+.step-copy { min-width: 0; }
+.step-copy strong { display: block; margin: 2px 0 3px; font-size: .8rem; font-weight: 650; }
+.step-copy span { display: block; overflow: hidden; color: var(--muted); font-size: .73rem; text-overflow: ellipsis; white-space: nowrap; }
+.empty-state { display: grid; min-height: 160px; place-items: center; padding: 22px; color: var(--muted); font-size: .84rem; text-align: center; }
+.empty-state p { max-width: 290px; margin: 0; }
+.report-card { display: none; margin-top: 18px; padding: 23px; border: 1px solid #bbded8; border-radius: 14px; background: #f5fbfa; }
+.report-card.is-entering { animation: panel-enter .3s var(--ease-out) both; }
+.report-card.error { border-color: #f0c5c2; background: var(--red-soft); }
+.report-top { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+.report-top h2 { margin: 0 0 10px; font-size: 1.05rem; }
+.report-summary { max-width: 80ch; margin: 0 0 17px; color: #44536a; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .9rem; line-height: 1.7; }
+.report-link { display: inline-flex; align-items: center; gap: 7px; padding: 9px 13px; border: 1px solid #badbd5; border-radius: 9px; background: #fff; color: var(--teal); font-size: .82rem; font-weight: 650; text-decoration: none; }
+.report-link:hover { border-color: var(--teal); }
+.report-link svg { width: 14px; height: 14px; }
+.diff-preview { display: block; width: min(100%, 760px); max-height: 460px; object-fit: contain; margin-top: 16px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.badge { display: inline-flex; align-items: center; min-height: 25px; padding: 3px 9px; border: 1px solid var(--line); border-radius: 99px; background: #fff; color: var(--muted); font-size: .74rem; font-weight: 650; }
+.badge.ok { border-color: #b6ded7; background: var(--teal-soft); color: var(--teal); }
+.badge.change { border-color: #f0d4ac; background: var(--amber-soft); color: var(--amber); }
+.badge.error { border-color: #ecc1be; background: var(--red-soft); color: var(--red); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 14px; }
+.run-card, .monitor-card { display: flex; min-width: 0; flex-direction: column; gap: 12px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 5px 18px rgb(26 42 64 / 3%); animation: row-enter .28s var(--ease-out) both; transition: transform .2s var(--ease-out), border-color .2s ease, box-shadow .2s ease; }
+.run-card:hover, .monitor-card:hover { transform: translateY(-2px); border-color: #c6d6dd; box-shadow: var(--shadow-hover); }
+.run-card:nth-child(2), .monitor-card:nth-child(2) { animation-delay: 35ms; }
+.run-card:nth-child(3), .monitor-card:nth-child(3) { animation-delay: 70ms; }
+.run-card:nth-child(4), .monitor-card:nth-child(4) { animation-delay: 105ms; }
+.run-card:nth-child(5), .monitor-card:nth-child(5) { animation-delay: 140ms; }
+.run-card h3, .monitor-card h3 { margin: 0; font-size: .94rem; line-height: 1.5; overflow-wrap: anywhere; }
+.card-summary { display: -webkit-box; overflow: hidden; margin: 0; color: var(--muted); font-size: .83rem; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--muted); font-size: .76rem; }
+.card-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
+.text-button { padding: 0; border: 0; background: transparent; color: var(--teal); font-size: .8rem; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+.diff-inline { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 9px; }
+.monitor-form { display: flex; gap: 10px; padding: 18px; margin-bottom: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.monitor-input { flex: 1; min-height: 46px; padding: 0 13px; }
+.interval-select { min-height: 46px; padding: 0 32px 0 12px; }
+.inline-error { min-height: 0; margin: 0 0 14px; color: var(--red); font-size: .82rem; }
+.inline-error:empty { display: none; }
+.load-error { grid-column: 1 / -1; padding: 18px; border: 1px solid #ecc1be; border-radius: 12px; background: var(--red-soft); color: var(--red); font-size: .85rem; }
+footer { margin-top: 45px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--faint); font-size: .76rem; }
+@media (max-width: 850px) {
+  main { padding-top: 40px; }
+  .hero { align-items: start; flex-direction: column; }
+  .workspace-grid { grid-template-columns: 1fr; }
+  .step-list { max-height: 300px; min-height: 100px; }
+  .browser-view { min-height: 260px; }
+}
+@media (max-width: 580px) {
+  .shell { width: min(100% - 30px, 1200px); }
+  .topbar { height: 62px; }
+  main { padding-top: 32px; }
+  .hero-aside { display: none; }
+  .run-compose { padding: 16px; }
+  .goal-row, .monitor-form { flex-direction: column; }
+  .goal-row .primary, .monitor-form .primary { width: 100%; }
+  .monitor-input, .interval-select { width: 100%; }
+  .tabs { margin-bottom: 17px; }
+  .tab { padding: 11px 12px; font-size: .85rem; }
+  .browser-view { min-height: 220px; }
+  .report-top { flex-direction: column; }
+  .subtle-label { display: none; }
+  .history-tools { grid-template-columns: minmax(0, 1fr) auto; }
+  .history-filter { grid-column: 1; }
+  .history-count { grid-column: 2; grid-row: 1 / span 2; }
+}
+@keyframes page-enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes panel-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes tab-enter { from { transform: scaleX(.55); opacity: .35; } to { transform: scaleX(1); opacity: 1; } }
+@keyframes row-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes image-enter { from { opacity: .45; transform: scale(.995); } to { opacity: 1; transform: scale(1); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <h1>Sentinel</h1>
-    <p>Describe what to check. An AI agent opens a real browser, does it, and files the evidence.</p>
-  </header>
-
-  <nav role="tablist"><button role="tab" data-tab="run" aria-selected="true">Run</button><button role="tab" data-tab="history" aria-selected="false">History</button><button role="tab" data-tab="mon" aria-selected="false">Monitors</button></nav>
-  <div id="tab-run">
-  <form class="goal" id="form">
-    <input id="goal" aria-label="Goal" placeholder="Go to the AWS Health status page, check DynamoDB in us-west-2 and summarize any incident" required>
-    <button id="go">Run agent</button>
-  </form>
-  <div class="chips" id="chips">
-    <span>Check the AWS status page for DynamoDB in us-west-2 and screenshot the incident table</span>
-    <span>Open the GitHub status page and summarize any active incidents</span>
-    <span>Find today's top 3 Hacker News stories and screenshot the list</span>
+<div class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="/" aria-label="Sentinel home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 19 6v5.3c0 4.6-2.9 7.8-7 9.7-4.1-1.9-7-5.1-7-9.7V6l7-3Z" stroke="currentColor" stroke-width="1.7"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span><span class="brand-name">Sentinel</span>
+    </a>
+    <div class="topbar-note" role="status" aria-live="polite"><span class="status-dot" id="service-dot" aria-hidden="true"></span><span id="service-label">Checking configuration…</span></div>
   </div>
-
-  <div class="grid">
-    <div class="frame" id="frame">
-      <div class="bar"><div class="dots"><i></i><i></i><i></i></div><div class="url" id="url">Waiting for a goal</div></div>
-      <div class="view" id="view"><span>The agent's browser view appears here, step by step.</span></div>
+</div>
+<main class="shell">
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Browser monitoring, made clear</p>
+      <h1>Know what changed.<br>See the evidence.</h1>
+      <p class="hero-copy">Give Sentinel a goal in plain English. It will navigate a real browser, capture each step, and keep a report you can review or share.</p>
     </div>
-    <div class="side" id="steps"><div class="empty">Agent steps will stream in here. Click a step to revisit its screenshot.</div></div>
-  </div>
-
-  <section id="report"><h2>Report</h2><pre id="summary"></pre><a id="link" target="_blank" rel="noopener">Open archived report</a><div id="rnote" class="row"></div><img id="rdiff" alt="Changes since last run" hidden></section>
-  </div>
-  <div id="tab-history" hidden><div class="cards" id="hist"></div></div>
-  <div id="tab-mon" hidden>
-    <form class="mon" id="mform"><input id="mgoal" aria-label="Monitor goal" placeholder="What should Sentinel keep checking?" required>
-      <select id="mmin" aria-label="Interval"><option value="5">every 5 min</option><option value="15">every 15 min</option><option value="60" selected>every hour</option><option value="1440">daily</option></select><button>Start monitor</button></form>
-    <div class="cards" id="mons"></div>
-  </div>
+    <div class="hero-aside"><strong>One workspace. Every run.</strong>Live sessions · saved reports · scheduled checks</div>
+  </header>
+  <nav class="tabs" role="tablist" aria-label="Sentinel workspace">
+    <button class="tab" id="tab-button-run" role="tab" aria-controls="tab-run" aria-selected="true" data-tab="run">Run a check</button>
+    <button class="tab" id="tab-button-history" role="tab" aria-controls="tab-history" aria-selected="false" data-tab="history">Run history</button>
+    <button class="tab" id="tab-button-mon" role="tab" aria-controls="tab-mon" aria-selected="false" data-tab="mon">Monitors</button>
+  </nav>
+  <aside class="setup-notice" id="setup-notice" role="status" hidden>
+    <span class="setup-icon" aria-hidden="true">!</span>
+    <div class="setup-copy"><strong>Finish setup to run browser checks</strong><p id="setup-message"></p></div>
+  </aside>
+  <section class="panel" id="tab-run" role="tabpanel" aria-labelledby="tab-button-run">
+    <form class="run-compose" id="form">
+      <label class="field-label" for="goal">What should Sentinel check?</label>
+      <div class="goal-row">
+        <input class="goal-input" id="goal" name="goal" maxlength="2000" placeholder="For example, check the service status page for active incidents…" required>
+        <button class="primary" id="go" type="submit" disabled>
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Run check
+        </button>
+      </div>
+      <p class="helper">Be specific about the page, information, or state you want to verify.</p>
+    </form>
+    <div class="examples" aria-label="Suggested checks">
+      <span class="examples-label">Try a check:</span>
+      <button class="example" type="button">Check the AWS status page for active DynamoDB incidents</button>
+      <button class="example" type="button">Summarize any active incidents on GitHub Status</button>
+      <button class="example" type="button">Find today's top stories on Hacker News</button>
+    </div>
+    <div class="workspace-grid">
+      <section class="surface-card" id="frame" aria-label="Live browser preview">
+        <div class="surface-heading"><h2>Browser session</h2><span class="subtle-label" id="session-state">Ready when you are</span></div>
+        <div class="browser-chrome"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="address" id="url">No page loaded</span></div>
+        <div class="browser-view" id="view" aria-live="polite">
+          <div class="placeholder"><span class="placeholder-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><strong>Your browser preview will appear here</strong><span>Start a check to watch Sentinel navigate and capture evidence.</span></div>
+        </div>
+      </section>
+      <section class="surface-card" aria-label="Agent activity">
+        <div class="surface-heading"><h2>Activity</h2><span class="subtle-label" id="step-count">No steps yet</span></div>
+        <div class="step-list" id="steps" aria-live="polite"><div class="empty-state"><p>Each browser action will appear here with its screenshot and page address.</p></div></div>
+      </section>
+    </div>
+    <section class="report-card" id="report" aria-live="polite">
+      <div class="report-top"><div><h2 id="report-title">Check complete</h2><p class="report-summary" id="summary"></p><a class="report-link" id="link" target="_blank" rel="noopener">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M11 4h5v5m-.5-4.5L9 11m3-1v5H5V8h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Open saved report
+      </a></div><div id="rnote"></div></div>
+      <img class="diff-preview" id="rdiff" alt="Visual differences from the previous run" hidden>
+    </section>
+  </section>
+  <section class="panel" id="tab-history" role="tabpanel" aria-labelledby="tab-button-history" hidden>
+    <div class="surface-heading section-title"><h2>Recent runs</h2><div class="heading-actions"><span class="subtle-label">Reports and visual changes</span><button class="quiet-action" id="history-refresh" type="button"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 5.5A5.5 5.5 0 1 0 13.2 9M13 2.8v3.4H9.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Refresh</button></div></div>
+    <div class="history-tools">
+      <label class="history-search-wrap">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.7" stroke="currentColor" stroke-width="1.5"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input class="history-search" id="history-search" type="search" aria-label="Search run history" placeholder="Search goals or summaries">
+      </label>
+      <select class="history-filter" id="history-filter" aria-label="Filter run history">
+        <option value="all">All runs</option>
+        <option value="changed">Changes detected</option>
+        <option value="stable">No change</option>
+        <option value="first">First runs</option>
+      </select>
+      <span class="history-count" id="history-count" role="status" aria-live="polite"></span>
+    </div>
+    <div class="cards" id="hist" aria-live="polite"></div>
+  </section>
+  <section class="panel" id="tab-mon" role="tabpanel" aria-labelledby="tab-button-mon" hidden>
+    <div class="surface-heading section-title"><h2>Scheduled monitors</h2><div class="heading-actions"><span class="subtle-label" id="monitor-updated">Sentinel checks these goals automatically</span><button class="quiet-action" id="monitor-refresh" type="button"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 5.5A5.5 5.5 0 1 0 13.2 9M13 2.8v3.4H9.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Refresh</button></div></div>
+    <form class="monitor-form" id="mform">
+      <input class="monitor-input" id="mgoal" name="goal" maxlength="2000" aria-label="Monitor goal" placeholder="What should Sentinel keep checking?" required>
+      <select class="interval-select" id="mmin" aria-label="Check interval"><option value="5">Every 5 minutes</option><option value="15">Every 15 minutes</option><option value="60" selected>Every hour</option><option value="1440">Daily</option></select>
+      <button class="primary" id="madd" type="submit" disabled>Add monitor</button>
+    </form>
+    <p class="inline-error" id="monitor-error" role="alert"></p>
+    <div class="cards" id="mons" aria-live="polite"></div>
+  </section>
+  <footer>Sentinel keeps the browser evidence and summaries together, so every automated check is reviewable.</footer>
 </main>
 <script>
-const $=id=>document.getElementById(id);
-let shots={};
-document.querySelectorAll('#chips span').forEach(c=>c.onclick=()=>{$('goal').value=c.textContent;$('goal').focus()});
-
-function show(n){const s=shots[n]; if(!s)return;
-  $('view').innerHTML=`<img alt="Browser screenshot for step ${n}" src="data:image/png;base64,${s.shot}">`;
-  $('url').textContent=s.url||''}
-
-$('form').onsubmit=e=>{
-  e.preventDefault(); shots={};
-  $('go').disabled=true; $('go').textContent='Running…';
-  $('steps').innerHTML=''; $('report').style.display='none'; $('report').classList.remove('err');
-  $('frame').classList.add('live');
-  $('view').innerHTML='<span>Launching browser…</span>';
-  const es=new EventSource('/api/run?goal='+encodeURIComponent($('goal').value));
-  const finish=()=>{es.close();$('go').disabled=false;$('go').textContent='Run agent';$('frame').classList.remove('live');
-    document.querySelectorAll('.step').forEach(s=>s.classList.add('done'))};
-  es.addEventListener('step',ev=>{
-    const d=JSON.parse(ev.data); shots[d.n]=d;
-    const el=document.createElement('div'); el.className='step';
-    el.innerHTML=`<b>Step ${d.n}</b><small></small><small></small>`;
-    el.children[1].textContent=d.goal||'Working…'; el.children[2].textContent=d.url;
-    el.onclick=()=>show(d.n); $('steps').prepend(el); show(d.n);
-  });
-  es.addEventListener('done',ev=>{
-    const d=JSON.parse(ev.data); finish();
-    $('summary').textContent=d.summary; $('link').href=d.report_url;
-    $('link').textContent=d.storage==='s3'?'Open S3 report (link valid 24h)':'Open saved report';
-    $('rnote').innerHTML=badge(d); $('rdiff').hidden=!d.diff_url; if(d.diff_url)$('rdiff').src=d.diff_url;
-    $('report').style.display='block'; $('report').scrollIntoView({behavior:'smooth'});
-  });
-  es.addEventListener('error',ev=>{
-    if(ev.data){const d=JSON.parse(ev.data);$('summary').textContent=d.msg;$('report').classList.add('err');
-      $('link').style.display='none';$('report').style.display='block'}
-    finish();
-  });
-};
-
-// ---- tabs ----
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected',x===b));
-  ['run','history','mon'].forEach(t=>$('tab-'+t).hidden=t!==b.dataset.tab);
-  if(b.dataset.tab==='history')loadHistory(); if(b.dataset.tab==='mon')loadMons();
+const $ = id => document.getElementById(id);
+let screenshots = {};
+let activeStream = null;
+let monitorRefreshTimer = null;
+let historyRuns = [];
+let providerReady = false;
+const formatDate = timestamp => new Date(timestamp * 1000).toLocaleString(undefined, {
+  dateStyle: 'medium', timeStyle: 'short'
 });
-const ago=t=>new Date(t*1000).toLocaleString();
-const badge=m=>m.has_diff?(m.changed?`<span class="badge chg">Changed · ${m.diff_pct}% of pixels</span>`:`<span class="badge ok">No change</span>`):`<span class="badge">First run</span>`;
-const esc=t=>{const d=document.createElement('div');d.textContent=t||'';return d.innerHTML};
-async function loadHistory(){
-  $('hist').innerHTML='<div class="empty">Loading runs…</div>';
-  const runs=await (await fetch('/api/history')).json();
-  $('hist').innerHTML=runs.length?'':'<div class="empty">No runs yet. Run an agent and it will be archived here.</div>';
-  runs.forEach(m=>{const c=document.createElement('div');c.className='card';
-    c.innerHTML=`<h3>${esc(m.goal)}</h3><div class="row">${badge(m)}<span>${ago(m.ts)}</span></div><p>${esc(m.summary)}</p>
-      <div class="row"><a href="${m.report_url}" target="_blank" rel="noopener">Open report</a>${m.diff_url?'<button class="linkbtn">Show changes</button>':''}</div>`;
-    const b=c.querySelector('button'); if(b)b.onclick=()=>{b.replaceWith(Object.assign(new Image(),{src:m.diff_url,alt:'Changed regions in red'}))};
-    $('hist').append(c)});
+const escapeHtml = value => {
+  return String(value || '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[character]));
+};
+const badge = run => {
+  if (!run.has_diff) return '<span class="badge">First run</span>';
+  return run.changed
+    ? `<span class="badge change">Visual change · ${Number(run.diff_pct || 0)}%</span>`
+    : '<span class="badge ok">No significant change</span>';
+};
+const setEmpty = (container, message) => {
+  container.replaceChildren();
+  const state = document.createElement('div');
+  state.className = 'empty-state';
+  const text = document.createElement('p');
+  text.textContent = message;
+  state.append(text);
+  container.append(state);
+};
+async function apiJson(url, options) {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    let reason = `Request failed (${response.status})`;
+    try {
+      const body = await response.json();
+      reason = typeof body.detail === 'string'
+        ? body.detail
+        : Array.isArray(body.detail)
+          ? body.detail.map(item => item.msg).filter(Boolean).join('; ') || reason
+          : reason;
+    } catch (_) {}
+    throw new Error(reason);
+  }
+  return response.json();
 }
-async function loadMons(){
-  const ms=await (await fetch('/api/monitors')).json();
-  $('mons').innerHTML=ms.length?'':'<div class="empty">No monitors yet. Add a goal and Sentinel re-checks it on a schedule, then flags changes.</div>';
-  ms.forEach(m=>{const c=document.createElement('div');c.className='card';
-    const st=m.error?`<span class="badge chg">Error: ${esc(m.error)}</span>`:m.last_ts?(m.last_changed?'<span class="badge chg">Change detected</span>':'<span class="badge ok">Stable</span>'):'<span class="badge">Queued</span>';
-    c.innerHTML=`<h3>${esc(m.goal)}</h3><div class="row">${st}<span>every ${m.minutes} min</span>${m.last_ts?`<span>last ${ago(m.last_ts)}</span>`:''}</div><div class="row"><button class="linkbtn">Stop monitor</button></div>`;
-    c.querySelector('button').onclick=async()=>{await fetch('/api/monitors/'+m.id,{method:'DELETE'});loadMons()};
-    $('mons').append(c)});
+async function loadServiceStatus() {
+  const runButton = $('go');
+  const monitorButton = $('madd');
+  try {
+    const status = await apiJson('/api/status');
+    providerReady = Boolean(status.ready);
+    runButton.disabled = !providerReady;
+    monitorButton.disabled = !providerReady;
+    $('service-label').textContent = providerReady
+      ? `${status.provider[0].toUpperCase()}${status.provider.slice(1)} · ${status.storage === 's3' ? 'S3 reports' : 'Local reports'}`
+      : 'Setup required';
+    $('service-dot').className = `status-dot ${providerReady ? 'ready' : 'error'}`;
+    $('setup-notice').hidden = providerReady;
+    if (!providerReady) {
+      $('setup-message').replaceChildren(document.createTextNode(`${status.message} Add the required setting to `));
+      const envFile = document.createElement('code');
+      envFile.textContent = '.env';
+      $('setup-message').append(envFile, document.createTextNode(' and restart Sentinel.'));
+    }
+  } catch (error) {
+    providerReady = false;
+    runButton.disabled = true;
+    monitorButton.disabled = true;
+    $('service-label').textContent = 'Service unavailable';
+    $('service-dot').className = 'status-dot error';
+    $('setup-notice').hidden = false;
+    $('setup-message').textContent = `${error.message} Refresh the page after the server is available.`;
+  }
 }
-$('mform').onsubmit=async e=>{e.preventDefault();
-  await fetch('/api/monitors',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({goal:$('mgoal').value,minutes:+$('mmin').value})});
-  $('mgoal').value='';loadMons()};
+function showStep(number) {
+  const step = screenshots[number];
+  if (!step || !step.shot) return;
+  document.querySelectorAll('.step').forEach(element => {
+    element.setAttribute('aria-current', String(element.querySelector('.step-number').textContent === String(number)));
+  });
+  const image = new Image();
+  image.alt = `Browser screenshot for step ${number}`;
+  image.className = 'is-entering';
+  image.src = `data:image/png;base64,${step.shot}`;
+  $('view').replaceChildren(image);
+  $('url').textContent = step.url || 'Page address unavailable';
+}
+function stopStream() {
+  if (activeStream) activeStream.close();
+  activeStream = null;
+  $('go').disabled = false;
+  $('go').classList.remove('is-loading');
+  $('go').innerHTML = '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Run check';
+  $('frame').classList.remove('live');
+}
+function addStep(data) {
+  screenshots[data.n] = data;
+  if ($('steps').querySelector('.empty-state')) $('steps').replaceChildren();
+  const row = document.createElement('button');
+  row.type = 'button';
+  row.className = 'step';
+  row.setAttribute('aria-label', `Show screenshot for step ${data.n}`);
+  const number = document.createElement('span');
+  number.className = 'step-number';
+  number.textContent = data.n;
+  const copy = document.createElement('span');
+  copy.className = 'step-copy';
+  const title = document.createElement('strong');
+  title.textContent = data.goal || 'Working through the page';
+  const address = document.createElement('span');
+  address.textContent = data.url || 'Page address unavailable';
+  copy.append(title, address);
+  row.append(number, copy);
+  row.addEventListener('click', () => showStep(data.n));
+  $('steps').prepend(row);
+  $('step-count').textContent = `${Object.keys(screenshots).length} ${Object.keys(screenshots).length === 1 ? 'step' : 'steps'}`;
+  showStep(data.n);
+}
+function finishRun() {
+  stopStream();
+  $('session-state').textContent = 'Check complete';
+  document.querySelectorAll('.step').forEach(element => element.classList.add('done'));
+}
+function revealReport() {
+  const report = $('report');
+  report.style.display = 'block';
+  report.classList.remove('is-entering');
+  requestAnimationFrame(() => report.classList.add('is-entering'));
+  report.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+$('form').addEventListener('submit', event => {
+  event.preventDefault();
+  const goal = $('goal').value.trim();
+  if (!providerReady) {
+    $('setup-notice').hidden = false;
+    $('setup-notice').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+  if (!goal || activeStream) return;
+  screenshots = {};
+  $('steps').replaceChildren();
+  $('step-count').textContent = 'Starting…';
+  $('report').style.display = 'none';
+  $('report').classList.remove('error');
+  $('link').style.display = '';
+  $('rdiff').hidden = true;
+  $('frame').classList.add('live');
+  $('session-state').textContent = 'Agent is working';
+  $('view').innerHTML = '<div class="placeholder"><strong>Launching browser…</strong><span>Sentinel is preparing your check.</span></div>';
+  $('url').textContent = 'Connecting to browser';
+  $('go').disabled = true;
+  $('go').classList.add('is-loading');
+  $('go').textContent = 'Running…';
+  const stream = new EventSource(`/api/run?goal=${encodeURIComponent(goal)}`);
+  activeStream = stream;
+  stream.addEventListener('step', event => {
+    try { addStep(JSON.parse(event.data)); }
+    catch (error) { console.error('Could not render browser step', error); }
+  });
+  stream.addEventListener('done', event => {
+    const result = JSON.parse(event.data);
+    finishRun();
+    $('report-title').textContent = 'Check complete';
+    $('summary').textContent = result.summary || 'The agent completed without a summary.';
+    $('link').href = result.report_url;
+    $('link').textContent = result.storage === 's3' ? 'Open S3 report · link valid 24 hours' : 'Open saved report';
+    $('rnote').innerHTML = badge(result);
+    if (result.diff_url) {
+      $('rdiff').src = result.diff_url;
+      $('rdiff').hidden = false;
+    }
+    revealReport();
+  });
+  stream.addEventListener('error', event => {
+    if (!event.data) {
+      $('summary').textContent = 'The live connection was interrupted. Check the server and try again.';
+      $('report-title').textContent = 'Connection interrupted';
+      $('report').classList.add('error');
+      $('link').style.display = 'none';
+      revealReport();
+      $('session-state').textContent = 'Connection interrupted';
+      stopStream();
+      return;
+    }
+    let message = 'The browser check could not be completed.';
+    try { message = JSON.parse(event.data).msg || message; }
+    catch (_) {}
+    $('summary').textContent = message;
+    $('report-title').textContent = 'Check could not be completed';
+    $('report').classList.add('error');
+    $('link').style.display = 'none';
+    revealReport();
+    $('session-state').textContent = 'Check failed';
+    stopStream();
+  });
+});
+document.querySelectorAll('.example').forEach(button => button.addEventListener('click', () => {
+  $('goal').value = button.textContent;
+  $('goal').focus();
+}));
+document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => {
+  if (monitorRefreshTimer) {
+    clearInterval(monitorRefreshTimer);
+    monitorRefreshTimer = null;
+  }
+  document.querySelectorAll('.tab').forEach(tab => tab.setAttribute('aria-selected', String(tab === button)));
+  document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
+    panel.hidden = panel.id !== `tab-${button.dataset.tab}`;
+  });
+  const activePanel = $(`tab-${button.dataset.tab}`);
+  activePanel.classList.remove('is-entering');
+  requestAnimationFrame(() => activePanel.classList.add('is-entering'));
+  try { localStorage.setItem('sentinel.activeTab', button.dataset.tab); }
+  catch (error) { console.warn('Could not remember the selected workspace tab', error); }
+  if (button.dataset.tab === 'history') loadHistory();
+  if (button.dataset.tab === 'mon') {
+    loadMonitors();
+    monitorRefreshTimer = setInterval(() => {
+      if (!document.hidden && !$('tab-mon').hidden) loadMonitors();
+    }, 60000);
+  }
+}));
+document.querySelectorAll('.tab').forEach((button, index, buttons) => button.addEventListener('keydown', event => {
+  let nextIndex;
+  if (event.key === 'ArrowRight') nextIndex = (index + 1) % buttons.length;
+  else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + buttons.length) % buttons.length;
+  else if (event.key === 'Home') nextIndex = 0;
+  else if (event.key === 'End') nextIndex = buttons.length - 1;
+  else return;
+  event.preventDefault();
+  buttons[nextIndex].focus();
+  buttons[nextIndex].click();
+}));
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && !$('tab-mon').hidden) loadMonitors();
+});
+document.addEventListener('keydown', event => {
+  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && !$('tab-run').hidden) {
+    event.preventDefault();
+    $('form').requestSubmit();
+  }
+});
+async function loadHistory() {
+  const container = $('hist');
+  const refresh = $('history-refresh');
+  refresh.disabled = true;
+  setEmpty(container, 'Loading recent runs…');
+  try {
+    historyRuns = await apiJson('/api/history');
+    renderHistory();
+  } catch (error) {
+    container.innerHTML = `<div class="load-error">${escapeHtml(error.message)} — unable to load run history.</div>`;
+  } finally {
+    refresh.disabled = false;
+  }
+}
+function renderHistory() {
+  const container = $('hist');
+  const query = $('history-search').value.trim().toLocaleLowerCase();
+  const filter = $('history-filter').value;
+  if (!historyRuns.length) {
+    $('history-count').textContent = '';
+    return setEmpty(container, 'No runs yet. Your completed checks and reports will appear here.');
+  }
+  const filtered = historyRuns.filter(run => {
+    const matchesQuery = `${run.goal || ''} ${run.summary || ''}`.toLocaleLowerCase().includes(query);
+    const matchesFilter = filter === 'all'
+      || (filter === 'changed' && Boolean(run.has_diff && run.changed))
+      || (filter === 'stable' && Boolean(run.has_diff && !run.changed))
+      || (filter === 'first' && !run.has_diff);
+    return matchesQuery && matchesFilter;
+  });
+  $('history-count').textContent = `Showing ${filtered.length} of ${historyRuns.length}`;
+  if (!filtered.length) {
+    const hasCriteria = query || filter !== 'all';
+    return setEmpty(container, hasCriteria
+      ? 'No runs match these filters. Try another search or choose All runs.'
+      : 'No runs yet. Your completed checks and reports will appear here.');
+  }
+  container.replaceChildren();
+  filtered.forEach((run, index) => {
+      const card = document.createElement('article');
+      card.className = 'run-card';
+      card.style.animationDelay = `${Math.min(index, 5) * 35}ms`;
+      card.innerHTML = `<h3>${escapeHtml(run.goal)}</h3><div class="card-meta">${badge(run)}<span>${formatDate(run.ts)}</span></div><p class="card-summary">${escapeHtml(run.summary)}</p><div class="card-actions"><a class="text-button" href="${escapeHtml(run.report_url)}" target="_blank" rel="noopener">Open report</a>${run.diff_url ? '<button class="text-button" type="button">View visual changes</button>' : ''}</div>`;
+      const diffButton = card.querySelector('button');
+      if (diffButton) diffButton.addEventListener('click', () => {
+        const existingImage = card.querySelector('.diff-inline');
+        if (existingImage) {
+          existingImage.remove();
+          diffButton.textContent = 'View visual changes';
+          return;
+        }
+        const image = new Image();
+        image.className = 'diff-inline';
+        image.alt = 'Visual differences from the previous run, highlighted in red';
+        image.src = run.diff_url;
+        card.append(image);
+        diffButton.textContent = 'Hide visual changes';
+      });
+      container.append(card);
+  });
+}
+async function loadMonitors() {
+  const container = $('mons');
+  const refresh = $('monitor-refresh');
+  refresh.disabled = true;
+  setEmpty(container, 'Loading monitors…');
+  try {
+    const monitors = await apiJson('/api/monitors');
+    $('monitor-updated').textContent = `Updated ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+    if (!monitors.length) return setEmpty(container, 'No scheduled monitors yet. Add a goal and Sentinel will check it on your schedule.');
+    container.replaceChildren();
+    monitors.forEach(monitor => {
+      const card = document.createElement('article');
+      card.className = 'monitor-card';
+      let state = '<span class="badge">Queued</span>';
+      if (monitor.error) state = `<span class="badge error">Run error · ${escapeHtml(monitor.error)}</span>`;
+      else if (monitor.last_ts) state = monitor.last_changed
+        ? '<span class="badge change">Change detected</span>'
+        : '<span class="badge ok">Stable</span>';
+      if (monitor.alert_error) state += `<span class="badge error">Alert delivery failed · ${escapeHtml(monitor.alert_error)}</span>`;
+      const lastCheck = monitor.last_ts ? `<span>Last checked ${formatDate(monitor.last_ts)}</span>` : '<span>First check is queued</span>';
+      const nextCheck = monitor.next ? `<span>Next check ${formatDate(monitor.next)}</span>` : '';
+      card.innerHTML = `<h3>${escapeHtml(monitor.goal)}</h3><div class="card-meta">${state}<span>Every ${Number(monitor.minutes)} min</span>${lastCheck}${nextCheck}</div><div class="card-actions">${monitor.report_url ? `<a class="text-button" href="${escapeHtml(monitor.report_url)}" target="_blank" rel="noopener">Open latest report</a>` : ''}<button class="text-button" type="button">Stop monitor</button></div>`;
+      card.querySelector('button').addEventListener('click', async event => {
+        const stop = event.currentTarget;
+        stop.disabled = true;
+        try {
+          await apiJson(`/api/monitors/${encodeURIComponent(monitor.id)}`, { method: 'DELETE' });
+          await loadMonitors();
+        } catch (error) {
+          $('monitor-error').textContent = error.message;
+          stop.disabled = false;
+        }
+      });
+      container.append(card);
+    });
+  } catch (error) {
+    container.innerHTML = `<div class="load-error">${escapeHtml(error.message)} — unable to load monitors.</div>`;
+  } finally {
+    refresh.disabled = false;
+  }
+}
+$('history-refresh').addEventListener('click', loadHistory);
+$('history-search').addEventListener('input', renderHistory);
+$('history-filter').addEventListener('change', renderHistory);
+$('monitor-refresh').addEventListener('click', loadMonitors);
+$('mform').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!providerReady) return;
+  const button = $('madd');
+  $('monitor-error').textContent = '';
+  button.disabled = true;
+  try {
+    await apiJson('/api/monitors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ goal: $('mgoal').value.trim(), minutes: Number($('mmin').value) })
+    });
+    $('mgoal').value = '';
+    await loadMonitors();
+  } catch (error) {
+    $('monitor-error').textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+loadServiceStatus();
+try {
+  const rememberedTab = localStorage.getItem('sentinel.activeTab');
+  const tab = Array.from(document.querySelectorAll('.tab'))
+    .find(button => button.dataset.tab === rememberedTab);
+  if (tab) tab.click();
+} catch (error) {
+  console.warn('Could not restore the previously selected workspace tab', error);
+}
 </script>
 </body>
 </html>
